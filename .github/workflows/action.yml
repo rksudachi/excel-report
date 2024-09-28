@@ -74,6 +74,7 @@ jobs:
         if (-not (Test-Path -Path "diff_report.html")) {
           Write-Host "diff_report.html was not generated, creating an empty file."
           Set-Content -Path "$PWD\diff_report.html" -Value "<html><body><p>No differences found.</p></body></html>"
+        }
 
     # 6. レポートをGitにコミット
     - name: Commit diff report
