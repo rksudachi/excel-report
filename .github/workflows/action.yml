@@ -36,6 +36,14 @@ jobs:
       run: |
         git diff --name-only HEAD^ HEAD > changed_files.txt
 
+    # 4. `diff_report.html` を削除
+    - name: Remove existing diff_report.html
+      run: |
+        if (Test-Path -Path "$PWD\diff_report.html") {
+          Remove-Item -Path "$PWD\diff_report.html"
+          Write-Host "Previous diff_report.html removed."
+        }
+
     # 5. Excelファイルの差分を比較
     - name: Compare Excel files and generate report
       run: |
