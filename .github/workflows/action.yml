@@ -44,6 +44,10 @@ jobs:
             Start-Process "WinMergeU.exe" -ArgumentList "$file", "HEAD^ --", "/or diff_report.html"
           }
         }
+        if (-not (Test-Path -Path "diff_report.html")) {
+          Write-Error "diff_report.html was not generated."
+        }
+        
 
     # 6. レポートをGitにコミット
     - name: Commit diff report
