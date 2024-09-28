@@ -21,20 +21,34 @@ jobs:
     - name: Install WinMerge using Chocolatey
       run: choco install winmerge -y
 
-    # 3. 差分比較を実行するバッチスクリプトの作成
-    - name: Create diff report batch script
-      run: |
-        echo @echo off > compare_excel.bat
-        echo set FILE1=%1 > compare_excel.bat
-        echo set FILE2=%2 >> compare_excel.bat
-        echo set REPORT=diff_report.html >> compare_excel.bat
-        echo WinMergeU.exe %FILE1% %FILE2% /e /u /or %REPORT% >> compare_excel.bat
+    # # 3. 差分比較を実行するバッチスクリプトの作成
+    # - name: Create diff report batch script
+    #   run: |
+    #     echo @echo off > compare_excel.bat
+    #     echo set FILE1=%1 > compare_excel.bat
+    #     echo set FILE2=%2 >> compare_excel.bat
+    #     echo set REPORT=diff_report.html >> compare_excel.bat
+    #     echo WinMergeU.exe %FILE1% %FILE2% /e /u /or %REPORT% >> compare_excel.bat
 
-    # 4. 変更されたファイルのリストを取得
-    - name: Get changed files
-      id: get_changed_files
+    # 2. 現在のコミットのファイルを保存
+    - name: Save current files
       run: |
-        git diff --name-only HEAD^ HEAD > changed_files.txt
+        mkdir current_files
+        git ls-tree --name-only HEAD > current_files/files_list.txt
+        foreach ($file in Get-Content current_files/files_list.txt) {
+          cp $file current_files/
+        }
+
+    # 3. 前のコミットにチェックアウトしてファイルを取得
+    - name: Checkout previous commit files
+      run: |
+        git checkout HEAD^
+        mkdir previous_files
+        foreach ($file in Get-Content current_files/files_list.txt) {
+          if (Test-Path $file) {
+            cp $file previous_files/
+          }
+        }
 
     # 4. `diff_report.html` を削除
     - name: Remove existing diff_report.html
@@ -44,21 +58,22 @@ jobs:
           Write-Host "Previous diff_report.html removed."
         }
 
-    # 5. Excelファイルの差分を比較
+    # 5. Excelファイルの差分を比較 (PowerShellで実行)
     - name: Compare Excel files and generate report
       run: |
-        $changedFiles = Get-Content -Path "changed_files.txt"
-        foreach ($file in $changedFiles) {
-          if ($file -like "*.xlsx") {
-            Start-Process "WinMergeU.exe" -ArgumentList "$file", "HEAD^ --", "/or diff_report.html"
+        $currentFiles = Get-ChildItem -Path "current_files" -Filter "*.xlsx"
+        foreach ($file in $currentFiles) {
+          $fileName = $file.Name
+          $prevFile = "previous_files\$fileName"
+          if (Test-Path $prevFile) {
+            Start-Process "WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/or $PWD\diff_report.html" -Wait
           }
         }
-        if (-not $reportGenerated) {
+
+        # diff_report.html が生成されていない場合、空のファイルを作成
+        if (-not (Test-Path -Path "diff_report.html")) {
           Write-Host "diff_report.html was not generated, creating an empty file."
-          New-Item -Path "$PWD\diff_report.html" -ItemType File
-          Add-Content -Path "$PWD\diff_report.html" -Value "<html><body><p>No differences found.</p></body></html>"
-        }
-        
+          Set-Content -Path "$PWD\diff_report.html" -Value "<html><body><p>No differences found.</p></body></html>"
 
     # 6. レポートをGitにコミット
     - name: Commit diff report
