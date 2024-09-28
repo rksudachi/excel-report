@@ -38,11 +38,12 @@ jobs:
     # 5. Excelファイルの差分を比較
     - name: Compare Excel files and generate report
       run: |
-        for /F "tokens=*" %%f in (changed_files.txt) do (
-          if "%%~xf"==".xlsx" (
-            WinMergeU.exe HEAD^ -- "%%f" /or diff_report.html
-          )
-        )
+        $changedFiles = Get-Content -Path "changed_files.txt"
+        foreach ($file in $changedFiles) {
+          if ($file -like "*.xlsx") {
+            Start-Process "WinMergeU.exe" -ArgumentList "$file", "HEAD^ --", "/or diff_report.html"
+          }
+        }
 
     # 6. レポートをGitにコミット
     - name: Commit diff report
