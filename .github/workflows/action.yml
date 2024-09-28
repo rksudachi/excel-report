@@ -1,1 +1,52 @@
+name: Excel Diff and Report
 
+on:
+  push:
+    branches:
+      - develop # 変更するブランチを指定（例: mainブランチ）
+
+jobs:
+  excel_diff:
+    runs-on: windows-latest
+
+    steps:
+    # 1. リポジトリのチェックアウト
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    # 2. ChocolateyでWinMergeをインストール
+    - name: Install WinMerge using Chocolatey
+      run: choco install winmerge -y
+
+    # 3. 差分比較を実行するバッチスクリプトの作成
+    - name: Create diff report batch script
+      run: |
+        echo @echo off > compare_excel.bat
+        echo set FILE1=%1 > compare_excel.bat
+        echo set FILE2=%2 >> compare_excel.bat
+        echo set REPORT=diff_report.html >> compare_excel.bat
+        echo WinMergeU.exe %FILE1% %FILE2% /e /u /or %REPORT% >> compare_excel.bat
+
+    # 4. 変更されたファイルのリストを取得
+    - name: Get changed files
+      id: get_changed_files
+      run: |
+        git diff --name-only HEAD^ HEAD > changed_files.txt
+
+    # 5. Excelファイルの差分を比較
+    - name: Compare Excel files and generate report
+      run: |
+        for /F "tokens=*" %%f in (changed_files.txt) do (
+          if "%%~xf"==".xlsx" (
+            WinMergeU.exe HEAD^ -- "%%f" /or diff_report.html
+          )
+        )
+
+    # 6. レポートをGitにコミット
+    - name: Commit diff report
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add diff_report.html
+        git commit -m "Add Excel diff report"
+        git push
