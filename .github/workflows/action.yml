@@ -8,7 +8,8 @@ on:
 jobs:
   excel_diff:
     runs-on: windows-latest
-
+    permissions:  # プッシュ権限を明示的に設定
+      contents: write
     steps:
     # 1. リポジトリのチェックアウト
     - name: Checkout repository
