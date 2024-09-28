@@ -13,6 +13,8 @@ jobs:
     # 1. リポジトリのチェックアウト
     - name: Checkout repository
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 2  # 直近の2コミットを取得
 
     # 2. ChocolateyでWinMergeをインストール
     - name: Install WinMerge using Chocolatey
