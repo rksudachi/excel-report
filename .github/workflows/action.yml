@@ -46,7 +46,9 @@ jobs:
           }
         }
         if (-not $reportGenerated) {
-          echo "No Excel file changes detected, skipping report generation."
+          Write-Host "diff_report.html was not generated, creating an empty file."
+          New-Item -Path "$PWD\diff_report.html" -ItemType File
+          Add-Content -Path "$PWD\diff_report.html" -Value "<html><body><p>No differences found.</p></body></html>"
         }
         
 
