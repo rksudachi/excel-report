@@ -44,8 +44,8 @@ jobs:
             Start-Process "WinMergeU.exe" -ArgumentList "$file", "HEAD^ --", "/or diff_report.html"
           }
         }
-        if (-not (Test-Path -Path "diff_report.html")) {
-          Write-Error "diff_report.html was not generated."
+        if (-not $reportGenerated) {
+          echo "No Excel file changes detected, skipping report generation."
         }
         
 
