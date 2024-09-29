@@ -71,7 +71,7 @@ jobs:
           echo "$PWD"
           if (Test-Path $prevFile) {
             Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/r", "/e", "/xq", "/u", "/or .\diff_report.html"
-            echo ""prevFile, $file.FullName"
+            echo "$prevFile, $file.FullName"
           }
         }
         Start-Sleep -Seconds 10
