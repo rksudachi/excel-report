@@ -68,7 +68,7 @@ jobs:
           echo "fileName = $fileName"
           echo "prevFile = $prevFile"
           if (Test-Path $prevFile) {
-            Start-Process "WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/x", "/u", "/or $PWD\diff_report.html" -Wait
+            Start-Process "WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/x", "/u", "/or $PWD\diff_report.html"
           }
         }
 
