@@ -87,4 +87,4 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add diff_report.html
         git commit -m "Add Excel diff report"
-        git push
+        git push origin HEAD:develop
