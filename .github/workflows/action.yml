@@ -91,4 +91,4 @@ jobs:
         git add diff_report.html
         git commit -m "Add Excel diff report"
         git pull origin develop
-        git push origin HEAD:develop
+        git push origin HEAD:develop --force
