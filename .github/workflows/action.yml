@@ -16,6 +16,16 @@ jobs:
       uses: actions/checkout@v3
       with:
         fetch-depth: 2  # 直近の2コミットを取得
+        
+    - name: Set Japanese locale
+      run: |
+        echo "Setting locale to Japanese"
+        chcp 65001   # UTF-8コードページに変更
+        setx LC_ALL ja-JP
+        setx LANG ja-JP
+        setx LANGUAGE ja-JP
+        echo "Locale set to Japanese"
+
 
     # 2. ChocolateyでWinMergeをインストール
     - name: Install WinMerge using Chocolatey
@@ -70,7 +80,7 @@ jobs:
           echo "prevFile = $prevFile"
           echo "$PWD"
           if (Test-Path $prevFile) {
-            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "/inifile current_files\winmerge.ini", "$prevFile", "$fileName", "/r", "/e", "/xq", "/u", "/or .\diff_report.html"
+            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "/inifile .\current_files\winmerge.ini", "$prevFile", "$fileName", "/r", "/e", "/xq", "/u", "/or .\diff_report.html"
             echo "$prevFile, $file.FullName"
           }
         }
