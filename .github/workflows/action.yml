@@ -65,6 +65,8 @@ jobs:
         foreach ($file in $currentFiles) {
           $fileName = $file.Name
           $prevFile = "previous_files\$fileName"
+          echo "fileName = $fileName"
+          echo "prevFile = $prevFile"
           if (Test-Path $prevFile) {
             Start-Process "WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/x", "/u", "/or $PWD\diff_report.html" -Wait
           }
