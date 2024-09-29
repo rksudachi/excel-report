@@ -61,6 +61,7 @@ jobs:
     # 5. Excelファイルの差分を比較 (PowerShellで実行)
     - name: Compare Excel files and generate report
       run: |
+        Write-Host "Starting WinMerge comparison..."
         $currentFiles = Get-ChildItem -Path "current_files" -Filter "*.xlsx"
         foreach ($file in $currentFiles) {
           $fileName = $file.Name
@@ -69,10 +70,11 @@ jobs:
           echo "prevFile = $prevFile"
           echo "$PWD"
           if (Test-Path $prevFile) {
-            Start-Process "WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/x", "/u", "/or diff_report.html"
+            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "$prevFile", "$fileName", "/r", "/e", "/xq", "/u", "/or .\diff_report.html"
+            echo "$prevFile, $file.FullName"
           }
         }
-        Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 10
         # diff_report.html が生成されていない場合、空のファイルを作成
         if (-not (Test-Path -Path "diff_report.html")) {
           Write-Host "diff_report.html was not generated, creating an empty file."
