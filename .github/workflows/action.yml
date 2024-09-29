@@ -72,7 +72,7 @@ jobs:
             Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "$prevFile", "$file.FullName", "/r", "/e", "/xq", "/u", "/or .\diff_report.html"
           }
         }
-        Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 30
         # diff_report.html が生成されていない場合、空のファイルを作成
         if (-not (Test-Path -Path "diff_report.html")) {
           Write-Host "diff_report.html was not generated, creating an empty file."
