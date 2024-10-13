@@ -30,25 +30,7 @@ jobs:
     # 2. ChocolateyでWinMergeをインストール
     - name: Install WinMerge using Chocolatey
       run: choco install winmerge -y
-    - name: List WinMerge Files
-      shell: pwsh
-      run: |
-        $package = Get-ChildItem "$env:ProgramData\chocolatey\lib\winmerge*" | Select-Object -First 1
-        $toolsPath = "$($package.FullName)\tools"
-        $installPathFile = Get-ChildItem -Path $toolsPath -Filter "*.installpath"
-
-        if ($installPathFile) {
-            $winmergePath = Get-Content $installPathFile.FullName
-        } else {
-            # デフォルトパスを使用
-            $winmergePath = "C:\Program Files\WinMerge"
-        }
-
-        Write-Host "WinMerge Installation Path: $winmergePath"
-
-        Get-ChildItem -Path $winmergePath -Recurse | ForEach-Object {
-            Write-Host $_.FullName
-        }
+    
     # # 3. 差分比較を実行するバッチスクリプトの作成
     # - name: Create diff report batch script
     #   run: |
@@ -98,7 +80,7 @@ jobs:
           echo "prevFile = $prevFile"
           echo "$PWD"
           if (Test-Path $prevFile) {
-            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "$prevFile", "$fileName", "/r", "/e", "/xq", "/u", "/prediffer CompareMSExcelFiles","/or .\diff_report.html"
+            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "$prevFile", "$fileName", "/r", "/e", "/xq", "/u", "/unpacker CompareMSExcelFiles","/or .\diff_report.html"
           }
         }
         Start-Sleep -Seconds 10
