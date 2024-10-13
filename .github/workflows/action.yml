@@ -30,7 +30,25 @@ jobs:
     # 2. ChocolateyでWinMergeをインストール
     - name: Install WinMerge using Chocolatey
       run: choco install winmerge -y
+    - name: List WinMerge Files
+      shell: pwsh
+      run: |
+        $package = Get-ChildItem "$env:ProgramData\chocolatey\lib\winmerge*" | Select-Object -First 1
+        $toolsPath = "$($package.FullName)\tools"
+        $installPathFile = Get-ChildItem -Path $toolsPath -Filter "*.installpath"
 
+        if ($installPathFile) {
+            $winmergePath = Get-Content $installPathFile.FullName
+        } else {
+            # デフォルトパスを使用
+            $winmergePath = "C:\Program Files\WinMerge"
+        }
+
+        Write-Host "WinMerge Installation Path: $winmergePath"
+
+        Get-ChildItem -Path $winmergePath -Recurse | ForEach-Object {
+            Write-Host $_.FullName
+        }
     # # 3. 差分比較を実行するバッチスクリプトの作成
     # - name: Create diff report batch script
     #   run: |
