@@ -80,7 +80,7 @@ jobs:
           echo "prevFile = $prevFile"
           echo "$PWD"
           if (Test-Path $prevFile) {
-            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "$prevFile", "$fileName", "/r", "/e", "/xq", "/u", "/unpacker CompareMSExcelFiles","/or .\diff_report.html"
+            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "report1.xlsx", "report.xlsx", "/r", "/e", "/xq", "/u", "/unpacker CompareMSExcelFiles","/or .\diff_report.html"
           }
         }
         Start-Sleep -Seconds 10
