@@ -40,25 +40,25 @@ jobs:
     #     echo set REPORT=diff_report.html >> compare_excel.bat
     #     echo WinMergeU.exe %FILE1% %FILE2% /e /u /or %REPORT% >> compare_excel.bat
 
-    # 2. 現在のコミットのファイルを保存
-    - name: Save current files
-      run: |
-        mkdir current_files
-        git ls-tree --name-only HEAD > current_files/files_list.txt
-        foreach ($file in Get-Content current_files/files_list.txt) {
-          cp $file current_files/
-        }
+    # # 2. 現在のコミットのファイルを保存
+    # - name: Save current files
+    #   run: |
+    #     mkdir current_files
+    #     git ls-tree --name-only HEAD > current_files/files_list.txt
+    #     foreach ($file in Get-Content current_files/files_list.txt) {
+    #       cp $file current_files/
+    #     }
 
-    # 3. 前のコミットにチェックアウトしてファイルを取得
-    - name: Checkout previous commit files
-      run: |
-        git checkout HEAD^
-        mkdir previous_files
-        foreach ($file in Get-Content current_files/files_list.txt) {
-          if (Test-Path $file) {
-            cp $file previous_files/
-          }
-        }
+    # # 3. 前のコミットにチェックアウトしてファイルを取得
+    # - name: Checkout previous commit files
+    #   run: |
+    #     git checkout HEAD^
+    #     mkdir previous_files
+    #     foreach ($file in Get-Content current_files/files_list.txt) {
+    #       if (Test-Path $file) {
+    #         cp $file previous_files/
+    #       }
+    #     }
 
     # 4. `diff_report.html` を削除
     - name: Remove existing diff_report.html
@@ -72,17 +72,18 @@ jobs:
     - name: Compare Excel files and generate report
       run: |
         Write-Host "Starting WinMerge comparison..."
-        $currentFiles = Get-ChildItem -Path "current_files" -Filter "*.xlsx"
-        foreach ($file in $currentFiles) {
-          $fileName = $file.Name
-          $prevFile = "previous_files\$fileName"
-          echo "fileName = $fileName"
-          echo "prevFile = $prevFile"
-          echo "$PWD"
-          if (Test-Path $prevFile) {
-            Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "report1.xlsx", "report.xlsx", "/r", "/e", "/xq", "/u", "/unpacker CompareMSExcelFiles","/or .\diff_report.html"
-          }
-        }
+        # $currentFiles = Get-ChildItem -Path "current_files" -Filter "*.xlsx"
+        # foreach ($file in $currentFiles) {
+        #   # $fileName = $file.Name
+        #   # $prevFile = "previous_files\$fileName"
+        #   # echo "fileName = $fileName"
+        #   # echo "prevFile = $prevFile"
+        #   # echo "$PWD"
+        #   if (Test-Path $prevFile) {
+        #     Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "report1.xlsx", "report.xlsx", "/r", "/e", "/xq", "/u", "/unpacker CompareMSExcelFiles","/or .\diff_report.html"
+        #   }
+        # }
+         Start-Process "C:\Program Files\WinMerge\WinMergeU.exe" -ArgumentList "report1.xlsx", "report.xlsx", "/r", "/e", "/xq", "/u", "/unpacker CompareMSExcelFiles","/or .\diff_report.html"
         Start-Sleep -Seconds 10
         # diff_report.html が生成されていない場合、空のファイルを作成
         if (-not (Test-Path -Path "diff_report.html")) {
