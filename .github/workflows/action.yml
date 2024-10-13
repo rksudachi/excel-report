@@ -29,7 +29,7 @@ jobs:
 
     # 2. ChocolateyでWinMergeをインストール
     - name: Install WinMerge using Chocolatey
-      run: choco install winmerge-jp -y
+      run: choco install winmerge -y
 
     # # 3. 差分比較を実行するバッチスクリプトの作成
     # - name: Create diff report batch script
