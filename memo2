@@ -1,0 +1,112 @@
+import pandas as pd
+from openpyxl import load_workbook
+from openpyxl.styles.colors import Color
+
+def get_gray_rows(file_path, sheet_name, color_check_column):
+    """
+    エクセルの指定列のセルの背景色がグレーなら、その行のインデックスを取得する。
+
+    Args:
+        file_path (str): エクセルファイルのパス
+        sheet_name (str): シート名
+        color_check_column (str): 背景色をチェックする列（例: "製品"）
+
+    Returns:
+        set: グレーの行インデックスの集合
+    """
+    wb = load_workbook(file_path, data_only=True)
+    ws = wb[sheet_name]
+
+    gray_rows = set()
+    color_column_idx = None
+
+    # ヘッダー行（2行）を取得
+    header_rows = list(ws.iter_rows(min_row=1, max_row=2, values_only=True))
+    headers = [" ".join(map(str, col)).strip() for col in zip(*header_rows)]  # 2行分を結合してカラム名にする
+
+    # 列のインデックスを特定
+    for idx, col_name in enumerate(headers, start=1):
+        if col_name == color_check_column:
+            color_column_idx = idx
+            break
+
+    if color_column_idx is None:
+        raise ValueError(f"列 '{color_check_column}' が見つかりません")
+
+    # 各行の背景色をチェック
+    for row_idx, row in enumerate(ws.iter_rows(min_row=3), start=2):  # データ行は3行目から
+        cell = row[color_column_idx - 1]  # openpyxlの列は0始まり
+        fill = cell.fill.start_color
+
+        # 背景色をRGBコードに変換
+        if fill.type == "rgb" and fill.rgb in ["808080", "A9A9A9", "D3D3D3"]:  # グレー系の色コード
+            gray_rows.add(row_idx)
+
+    return gray_rows
+
+def process_excel(template_path, data_path, output_path, sheet_name, fill_columns, color_check_column):
+    """
+    エクセルデータを処理し、指定の列を前の値で補完し、テンプレートに追記する。
+    背景色がグレーの行は除外する。
+    ヘッダーが2行の場合、それを考慮する。
+
+    Args:
+        template_path (str): テンプレートのエクセルファイルのパス
+        data_path (str): 追加するデータのエクセルファイルのパス
+        output_path (str): 保存先のエクセルファイルのパス
+        sheet_name (str): 処理対象のシート名
+        fill_columns (list): 空欄を前の値で補完する列のリスト
+        color_check_column (str): 背景色をチェックする列の名前
+    """
+
+    # 背景色がグレーの行を取得
+    gray_rows = get_gray_rows(data_path, sheet_name, color_check_column)
+
+    # テンプレートのエクセルを読み込む（ヘッダー2行）
+    template_df = pd.read_excel(template_path, sheet_name=sheet_name, header=[0, 1], dtype=str)
+    template_df.columns = [" ".join(col).strip() for col in template_df.columns]  # ヘッダーを結合
+
+    # データのエクセルを読み込む（ヘッダー2行）
+    df = pd.read_excel(data_path, sheet_name=sheet_name, header=[0, 1], dtype=str)
+    df.columns = [" ".join(col).strip() for col in df.columns]  # ヘッダーを結合
+
+    # 前後の空白（半角・全角）を削除
+    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+    # 指定された列の空欄（半角・全角スペースのみのセルも含む）を NaN に統一
+    for col in fill_columns:
+        if col in df.columns:
+            df[col] = df[col].replace(r"^\s*$", pd.NA, regex=True)
+            df[col] = df[col].fillna(method="ffill")  # 前の値で補完
+
+    # グレーの行を除外
+    df = df.drop(index=list(gray_rows), errors="ignore").reset_index(drop=True)
+
+    # テンプレートの末尾にデータを追記
+    updated_df = pd.concat([template_df, df], ignore_index=True)
+
+    # 更新したデータを新しいエクセルファイルとして保存
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        updated_df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    # 処理後のエクセルを表示
+    import ace_tools as tools
+    tools.display_dataframe_to_user(name="更新後のエクセル", dataframe=updated_df)
+
+
+# ==================
+# 関数の実行例
+# ==================
+template_path = "template.xlsx"  # テンプレートのエクセル
+data_path = "sample.xlsx"  # 追加するデータのエクセル
+output_path = "output.xlsx"  # 保存先のエクセル
+sheet_name = "Sheet1"  # シート名
+
+# 空欄を補完したい列を指定（例: "製品" 列のみ補完）
+fill_columns = ["製品 型番"]  # 例: ヘッダーが「製品 型番」のように結合される
+
+# 背景色をチェックする列（例: "製品 型番" の背景色がグレーならその行を除外）
+color_check_column = "製品 型番"
+
+# 関数を実行
+process_excel(template_path, data_path, output_path, sheet_name, fill_columns, color_check_column)
