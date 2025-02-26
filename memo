@@ -1,0 +1,54 @@
+import pandas as pd
+
+def process_excel(template_path, data_path, output_path, sheet_name, fill_columns):
+    """
+    エクセルデータを処理し、指定の列を前の値で補完し、テンプレートに追記する。
+
+    Args:
+        template_path (str): テンプレートのエクセルファイルのパス
+        data_path (str): 追加するデータのエクセルファイルのパス
+        output_path (str): 保存先のエクセルファイルのパス
+        sheet_name (str): 処理対象のシート名
+        fill_columns (list): 空欄を前の値で補完する列のリスト
+    """
+
+    # テンプレートのエクセルを読み込む
+    template_df = pd.read_excel(template_path, sheet_name=sheet_name, dtype=str)
+
+    # データのエクセルを読み込む（文字列型で読み込む）
+    df = pd.read_excel(data_path, sheet_name=sheet_name, dtype=str)
+
+    # 前後の空白（半角・全角）を削除
+    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+    # 指定された列の空欄（半角・全角スペースのみのセルも含む）を NaN に統一
+    for col in fill_columns:
+        if col in df.columns:
+            df[col] = df[col].replace(r"^\s*$", pd.NA, regex=True)
+            df[col] = df[col].fillna(method="ffill")  # 前の値で補完
+
+    # テンプレートの末尾にデータを追記
+    updated_df = pd.concat([template_df, df], ignore_index=True)
+
+    # 更新したデータを新しいエクセルファイルとして保存
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        updated_df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    # 処理後のエクセルを表示
+    import ace_tools as tools
+    tools.display_dataframe_to_user(name="更新後のエクセル", dataframe=updated_df)
+
+
+# ==================
+# 関数の実行例
+# ==================
+template_path = "template.xlsx"  # テンプレートのエクセル
+data_path = "sample.xlsx"  # 追加するデータのエクセル
+output_path = "output.xlsx"  # 保存先のエクセル
+sheet_name = "Sheet1"  # シート名
+
+# 空欄を補完したい列を指定（例: "製品" 列のみ補完）
+fill_columns = ["製品"]
+
+# 関数を実行
+process_excel(template_path, data_path, output_path, sheet_name, fill_columns)
